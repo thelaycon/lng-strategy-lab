@@ -1,0 +1,1790 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Energy Strategy Lab | Institutional Bento Terminal</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='10' fill='%230052fe'/%3E%3Cpath d='M16 6c3.2 4.2 6.5 7.8 6.5 13a6.5 6.5 0 0 1-13 0c0-5.2 3.3-8.8 6.5-13z' fill='%23fff'/%3E%3C/svg%3E"/>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS & Chart.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            bento: {
+              bg: '#080b13',
+              card: '#111625',
+              cardHover: '#141b2d',
+              border: 'rgba(255, 255, 255, 0.06)',
+              blue: '#0052fe',
+              blueDark: '#0043d1',
+              blueLight: '#266eff',
+              cyan: '#00d2ff',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #080b13;
+      color: #f1f5f9;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Bento Card */
+    .bento-card {
+      background-color: #111625;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 24px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .bento-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Hero Cobalt Blue Card */
+    .bento-hero-blue {
+      background: linear-gradient(145deg, #0052fe 0%, #0042d4 100%);
+      border-radius: 24px;
+      box-shadow: 0 20px 40px -15px rgba(0, 82, 254, 0.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Arrow icon button */
+    .bento-arrow-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      transition: all 0.15s ease;
+    }
+    .bento-arrow-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      transform: translate(1px, -1px);
+    }
+    .bento-arrow-btn-blue {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+    .bento-arrow-btn-blue:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .input-dark {
+      background: #0b0f1a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border-radius: 12px;
+      transition: all 0.15s ease;
+    }
+    .input-dark:focus {
+      outline: none;
+      border-color: #0052fe;
+      box-shadow: 0 0 0 2px rgba(0, 82, 254, 0.25);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
+
+    /* Toast */
+    #toastContainer {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast-msg {
+      pointer-events: auto;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateY(12px);
+      opacity: 0;
+    }
+    .toast-msg.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col p-3 sm:p-5 lg:p-6 max-w-[1780px] mx-auto selection:bg-blue-600/30">
+
+  <!-- ================= KUJIRA-STYLE FLOATING HEADER ================= -->
+  <header class="flex flex-wrap items-center justify-between gap-4 mb-6 px-2">
+    
+    <!-- Brand -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#0052fe] to-[#266eff] flex items-center justify-center text-white font-black text-sm shadow-lg shadow-blue-600/30">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-base font-extrabold tracking-tight text-white uppercase">ENERGY</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">LAB</span>
+        </div>
+        <p class="text-[11px] text-slate-400 hidden sm:block">Cross-Commodity Futures &amp; Arb Terminal</p>
+      </div>
+    </div>
+
+    <!-- Centered Nav Capsule -->
+    <nav class="flex items-center p-1.5 rounded-full bg-[#111625] border border-white/[0.06] shadow-xl">
+      <button id="navDash" onclick="switchNav('dash')" class="px-5 py-2 rounded-full text-xs font-bold transition-all bg-white text-slate-900 shadow-sm">
+        Dashboard
+      </button>
+      <button id="navPaper" onclick="switchNav('paper')" class="px-5 py-2 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+        Paper Trading
+        <span id="paperBadge" class="hidden text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">0</span>
+      </button>
+      <button id="navUpload" onclick="openUploadModal()" class="px-5 py-2 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all">
+        Upload CSV
+      </button>
+      <button id="navConfig" onclick="toggleConfigDrawer()" class="px-4 py-2 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+        Allocation &amp; Engine
+      </button>
+    </nav>
+
+    <!-- Header Actions & Status -->
+    <div class="flex items-center gap-3">
+      <div id="liveFeedStatus" class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#111625] border border-white/[0.06] text-xs font-mono text-emerald-400">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="feedText">Feed Connected</span>
+      </div>
+      <button onclick="toggleHelpModal()" class="w-9 h-9 rounded-xl bg-[#111625] border border-white/[0.06] flex items-center justify-center text-slate-400 hover:text-white transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </button>
+    </div>
+
+  </header>
+
+  <!-- ================= BENTO DASHBOARD VIEW ================= -->
+  <main id="bentoDashboard" class="space-y-5">
+    
+    <!-- 6 PROMINENT BENTO KPI SCORECARDS -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3.5">
+      
+      <!-- 1. Portfolio Value -->
+      <div class="bento-card p-4 flex flex-col justify-between hover:border-slate-600 transition">
+        <div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+            <span>Portfolio Value</span>
+            <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div id="kpiValue" class="text-xl xl:text-2xl font-extrabold num text-white">$1,000,000</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/[0.04] font-mono">
+          <span id="kpiPnl">+$0</span>
+          <span id="kpiPnlPct" class="px-1.5 py-0.2 rounded text-[10px] bg-emerald-950 text-emerald-300 font-bold">+0.0%</span>
+        </div>
+      </div>
+
+      <!-- 2. Total Return -->
+      <div class="bento-card p-4 flex flex-col justify-between hover:border-slate-600 transition">
+        <div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+            <span>Total Return</span>
+            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          </div>
+          <div id="kpiReturn" class="text-xl xl:text-2xl font-extrabold num text-emerald-400">0.00%</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/[0.04] font-mono">
+          <span>CAGR</span>
+          <span id="kpiCagr" class="text-white font-bold">0.00%</span>
+        </div>
+      </div>
+
+      <!-- 3. Sharpe Ratio -->
+      <div class="bento-card p-4 flex flex-col justify-between hover:border-slate-600 transition">
+        <div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+            <span>Sharpe Ratio</span>
+            <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <div id="kpiSharpe" class="text-xl xl:text-2xl font-extrabold num text-white">0.00</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/[0.04] font-mono">
+          <span id="kpiVol">Vol 0.0%</span>
+          <span id="kpiSharpeRating" class="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 font-bold">Rating</span>
+        </div>
+      </div>
+
+      <!-- 4. Max Drawdown -->
+      <div class="bento-card p-4 flex flex-col justify-between hover:border-slate-600 transition">
+        <div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+            <span>Max Drawdown</span>
+            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+          </div>
+          <div id="kpiDrawdown" class="text-xl xl:text-2xl font-extrabold num text-rose-400">0.00%</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/[0.04] font-mono">
+          <span>Peak-to-trough</span>
+          <span id="kpiDdRating" class="px-1.5 py-0.2 rounded text-[10px] bg-rose-950 text-rose-300 font-bold">Risk</span>
+        </div>
+      </div>
+
+      <!-- 5. Win Rate -->
+      <div class="bento-card p-4 flex flex-col justify-between hover:border-slate-600 transition">
+        <div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+            <span>Win Rate</span>
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div id="kpiWinRate" class="text-xl xl:text-2xl font-extrabold num text-white">0.00%</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/[0.04] font-mono">
+          <span id="kpiDays">0 bars</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-slate-800 text-slate-300 font-bold">Daily</span>
+        </div>
+      </div>
+
+      <!-- 6. Total Trades -->
+      <div class="bento-card p-4 flex flex-col justify-between hover:border-slate-600 transition">
+        <div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+            <span>Trade Count</span>
+            <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+          </div>
+          <div id="kpiTrades" class="text-xl xl:text-2xl font-extrabold num text-white">0</div>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/[0.04] font-mono">
+          <span id="kpiTradesPerYear">0 / year</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] bg-blue-950 text-blue-300 font-bold">Filled</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MAIN BENTO GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-5 items-stretch">
+      
+      <!-- ================= ROW 1 ================= -->
+
+      <!-- 1. HERO COBALT BLUE CARD: PORTFOLIO VALUE (Col 1-3) -->
+      <div class="bento-hero-blue p-6 xl:col-span-3 flex flex-col justify-between min-h-[340px]">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 18h12l3-18H3z"/></svg>
+            </div>
+            <span class="text-xs font-bold text-white/90 uppercase tracking-wider">Strategy Equity</span>
+          </div>
+          <button onclick="copySummaryText()" title="Copy Performance" class="bento-arrow-btn bento-arrow-btn-blue">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+          </button>
+        </div>
+
+        <span class="text-xs font-semibold text-blue-100 block">Total Portfolio</span>
+        <div id="heroFinalValue" class="text-3xl lg:text-4xl font-extrabold num text-white tracking-tight mt-1">
+          $1,000,000
+        </div>
+      </div>
+
+      <!-- Inner Balance Tiles (Kujira style) -->
+      <div class="grid grid-cols-2 gap-3 mt-6">
+        <div class="bg-white/15 backdrop-blur-md rounded-2xl p-3.5 border border-white/20">
+          <span class="text-[11px] font-medium text-blue-100 block">Net P&amp;L</span>
+          <b id="heroPnl" class="text-base font-extrabold num text-white mt-0.5 block">$0.00</b>
+          <span id="heroReturnPct" class="text-[10px] font-bold num text-emerald-200 mt-1 inline-block">+0.00%</span>
+        </div>
+        <div class="bg-white rounded-2xl p-3.5 shadow-lg shadow-black/10">
+          <span class="text-[11px] font-semibold text-slate-500 block">Starting Cap</span>
+          <b id="heroCapital" class="text-base font-extrabold num text-slate-900 mt-0.5 block">$1.00M</b>
+          <span id="heroDays" class="text-[10px] font-bold num text-blue-600 mt-1 inline-block">Daily Bar</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] font-mono text-blue-100/80 pt-4 border-t border-white/15 mt-4">
+        <span id="heroPeriod">2024-01-01 → Today</span>
+        <span class="bg-white/20 px-2 py-0.5 rounded-full font-bold text-white text-[10px]">VERIFIED</span>
+      </div>
+    </div>
+
+    <!-- 2. MAIN CHART CARD: EQUITY CURVE (Col 4-9) -->
+    <div class="bento-card p-6 xl:col-span-6 flex flex-col justify-between min-h-[340px]">
+      <div>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 font-bold">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            </div>
+            <div>
+              <h2 id="chartStrategyTitle" class="text-sm font-bold text-white flex items-center gap-2">
+                ATR Trailing Trend
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30">ALPHA</span>
+              </h2>
+              <p class="text-[11px] text-slate-400">Net portfolio equity curve after fee &amp; slippage deductions</p>
+            </div>
+          </div>
+
+          <!-- Timeframe buttons -->
+          <div class="flex items-center gap-1 p-1 rounded-xl bg-[#090d18] border border-white/[0.06]">
+            <button onclick="setPeriod(1, this)" class="tf-btn px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">1Y</button>
+            <button onclick="setPeriod(2, this)" class="tf-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm transition">2Y</button>
+            <button onclick="setPeriod(3, this)" class="tf-btn px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">3Y</button>
+            <button onclick="setPeriod(0, this)" class="tf-btn px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">MAX</button>
+            <button onclick="downloadCSV()" title="Export CSV" class="p-1 text-slate-400 hover:text-white transition border-l border-white/[0.06] pl-2 ml-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="w-full h-[230px] sm:h-[250px]">
+          <canvas id="eq"></canvas>
+        </div>
+      </div>
+
+      <!-- Micro Stats Footer -->
+      <div class="grid grid-cols-4 gap-2 pt-3 border-t border-white/[0.06] mt-2 font-mono text-[11px] text-slate-400">
+        <div><span>CAGR:</span> <b id="statCagr" class="text-white">--</b></div>
+        <div><span>Sharpe:</span> <b id="statSharpe" class="text-white">--</b></div>
+        <div><span>Max DD:</span> <b id="statDd" class="text-rose-400">--</b></div>
+        <div><span>Win Rate:</span> <b id="statWin" class="text-emerald-400">--</b></div>
+      </div>
+    </div>
+
+    <!-- 3. RIGHT COLUMN: BENCHMARK MARKET WATCH (Col 10-12) -->
+    <div class="xl:col-span-3 space-y-3 flex flex-col justify-between">
+      
+      <div class="bento-card p-4 flex items-center justify-between hover:bg-[#141b2d] cursor-pointer" onclick="toggleTicker('TTF=F')">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs">
+            EU
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-white font-mono">TTF=F</span>
+              <span class="text-[9px] px-1 py-0.2 rounded bg-sky-950 text-sky-300 font-mono">GAS</span>
+            </div>
+            <span class="text-[11px] text-slate-400">Dutch TTF Front-Month</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span id="pxTTF" class="text-xs font-bold num text-white block">$68.13</span>
+          <span class="text-[10px] font-bold text-emerald-400 num">Live</span>
+        </div>
+      </div>
+
+      <div class="bento-card p-4 flex items-center justify-between hover:bg-[#141b2d] cursor-pointer" onclick="toggleTicker('NG=F')">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
+            US
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-white font-mono">NG=F</span>
+              <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-950 text-emerald-300 font-mono">HH</span>
+            </div>
+            <span class="text-[11px] text-slate-400">Henry Hub Natural Gas</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span id="pxNG" class="text-xs font-bold num text-white block">$3.00</span>
+          <span class="text-[10px] font-bold text-emerald-400 num">Live</span>
+        </div>
+      </div>
+
+      <div class="bento-card p-4 flex items-center justify-between hover:bg-[#141b2d] cursor-pointer" onclick="toggleTicker('JKM=F')">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xs">
+            AS
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-white font-mono">JKM=F</span>
+              <span class="text-[9px] px-1 py-0.2 rounded bg-amber-950 text-amber-300 font-mono">LNG</span>
+            </div>
+            <span class="text-[11px] text-slate-400">Platts Asian LNG Spot</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span id="pxJKM" class="text-xs font-bold num text-white block">$13.45</span>
+          <span class="text-[10px] font-bold text-emerald-400 num">Live</span>
+        </div>
+      </div>
+
+      <div class="bento-card p-4 flex items-center justify-between hover:bg-[#141b2d] cursor-pointer" onclick="toggleTicker('BZ=F')">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs">
+            OIL
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-white font-mono">BZ=F</span>
+              <span class="text-[9px] px-1 py-0.2 rounded bg-purple-950 text-purple-300 font-mono">CRUDE</span>
+            </div>
+            <span class="text-[11px] text-slate-400">Brent Oil-Link Parity</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <span id="pxBZ" class="text-xs font-bold num text-white block">$72.80</span>
+          <span class="text-[10px] font-bold text-slate-400 num">Context</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= ROW 2 ================= -->
+
+    <!-- 4. BOTTOM-LEFT: UNDERWATER DRAWDOWN & RISK (Col 1-4) -->
+    <div class="bento-card p-6 xl:col-span-4 flex flex-col justify-between min-h-[300px]">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Peak-to-Trough Drawdown</span>
+          </div>
+          <button class="bento-arrow-btn">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+          </button>
+        </div>
+
+        <div class="flex items-baseline gap-3 mb-2">
+          <span id="drawdownBigVal" class="text-2xl font-extrabold num text-rose-400">-22.9%</span>
+          <span class="text-xs text-slate-400 font-mono">Max Risk Decline</span>
+        </div>
+
+        <div class="w-full h-[160px]">
+          <canvas id="dd"></canvas>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 pt-2 border-t border-white/[0.06]">
+        <span>Total Trades: <b id="statTrades" class="text-white">37</b></span>
+        <span>Vol: <b id="statVol" class="text-white">25.2%</b></span>
+      </div>
+    </div>
+
+    <!-- 5. BOTTOM-CENTER: PORTFOLIO ALLOCATION DONUT (Col 5-8) -->
+    <div class="bento-card p-6 xl:col-span-4 flex flex-col justify-between min-h-[300px]">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Asset Allocations &amp; Weights</span>
+          </div>
+          <button class="bento-arrow-btn" onclick="toggleConfigDrawer()" title="Adjust Weights">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+          </button>
+        </div>
+
+        <!-- Donut with centered metric -->
+        <div class="relative w-full h-[180px] flex items-center justify-center my-1">
+          <canvas id="donutChart"></canvas>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span id="donutCenterVal" class="text-base font-extrabold num text-white">100%</span>
+            <span class="text-[10px] text-slate-400 uppercase tracking-widest font-mono">Allocated</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Donut Legend Pills -->
+      <div id="donutLegend" class="flex flex-wrap items-center justify-center gap-2 pt-2 border-t border-white/[0.06]">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- 6. BOTTOM-RIGHT HERO COBALT BLUE CARD: SIMULATION COCKPIT (Col 9-12) -->
+    <div class="bento-hero-blue p-6 xl:col-span-4 flex flex-col justify-between min-h-[300px]">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            </div>
+            <span class="text-xs font-bold text-white/90 uppercase tracking-wider">Quant Cockpit</span>
+          </div>
+          <button onclick="toggleConfigDrawer()" class="text-[10px] font-mono font-bold bg-white/20 hover:bg-white/30 text-white px-2.5 py-1 rounded-full transition">
+            Weights &amp; Params ⚙
+          </button>
+        </div>
+
+        <!-- Strategy select -->
+        <label class="text-[11px] font-medium text-blue-100 block mb-1">Active Quant Alpha</label>
+        <div class="relative mb-3">
+          <select id="quickStrategy" onchange="syncStrategyFromQuick()" class="w-full bg-black/30 border border-white/20 text-white text-xs font-semibold rounded-xl px-3 py-2.5 appearance-none pr-8 cursor-pointer">
+            <!-- options -->
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-white/70">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+
+        <!-- Quick Param preview -->
+        <div id="quickParamsPreview" class="text-xs text-blue-100/90 bg-black/20 rounded-xl p-2.5 border border-white/10 mb-4 font-mono text-[11px]">
+          entry=20 · atr_window=14 · atr_mult=3.0
+        </div>
+      </div>
+
+      <!-- Primary Action Button -->
+      <div>
+        <button id="runBtn" onclick="run()" class="w-full py-3.5 rounded-2xl bg-white text-slate-900 font-extrabold text-sm shadow-xl shadow-black/20 hover:bg-blue-50 active:scale-[0.98] transition flex items-center justify-center gap-2">
+          <svg id="runIcon" class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span id="runText">Run Simulation</span>
+          <kbd class="ml-1 text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-mono">⌘+↵</kbd>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= BENTO PAPER TRADING VIEW ================= -->
+  <main id="bentoPaper" class="hidden grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+    
+    <!-- Left Column: Forward Accounts List (Col 1-4) -->
+    <div class="bento-card p-6 xl:col-span-4 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          Forward Portfolios
+        </h2>
+        <button onclick="openPaperModal()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-sm flex items-center gap-1 transition">
+          + New Run
+        </button>
+      </div>
+
+      <div id="paperList" class="space-y-2.5 max-h-[600px] overflow-y-auto pr-1">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Right Column: Rich Cockpit & History (Col 5-12) -->
+    <div id="paperDetail" class="xl:col-span-8 space-y-5">
+      <!-- Populated dynamically by showPaper(id) -->
+    </div>
+
+  </main>
+
+  <!-- ================= NEW PAPER RUN MODAL ================= -->
+  <div id="paperModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bento-card w-full max-w-lg p-6 bg-[#111625] border border-white/10 shadow-2xl relative">
+      <button onclick="closePaperModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Deploy New Forward Portfolio</h3>
+          <p class="text-xs text-slate-400">Simulate execution with zero lookahead bias</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1.5">Strategy Alpha</label>
+          <select id="pmodalStrategy" class="w-full input-dark p-2.5 text-xs font-semibold">
+            <!-- options -->
+          </select>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="text-xs font-semibold text-slate-300">Universe Instruments &amp; Allocation Weights</label>
+            <button onclick="equalizePaperModalWeights()" class="text-[11px] text-blue-400 hover:underline">Equal Weight</button>
+          </div>
+          <div id="pmodalChips" class="flex flex-wrap gap-1.5 mb-2.5"></div>
+          <div id="pmodalWeightsList" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Starting Allocation Capital ($)</label>
+          <input type="number" id="pmodalCapital" value="1000000" class="w-full input-dark p-2.5 text-xs font-semibold num"/>
+        </div>
+
+        <div class="p-3 rounded-xl bg-[#090d18] border border-white/[0.06] text-[11px] text-slate-400 leading-relaxed font-mono">
+          • Forward account begins flat today with 400d historical indicator warmup.<br/>
+          • Advance step-by-step using <b class="text-slate-200">Step Forward</b> or via automated cron webhook.
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
+          <button type="button" onclick="closePaperModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
+          <button type="button" onclick="submitCreatePaper()" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30">Deploy Account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ENGINE CONTROLS & ASSET ALLOCATION DRAWER ================= -->
+  <div id="configDrawer" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex justify-end">
+    <div class="w-full max-w-md h-full bg-[#111625] border-l border-white/10 p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
+      <div>
+        <div class="flex items-center justify-between pb-4 border-b border-white/10 mb-5">
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            Engine Controls &amp; Allocations
+          </h3>
+          <button onclick="toggleConfigDrawer()" class="text-slate-400 hover:text-white p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- 1. Universe Selection -->
+        <div class="mb-5">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Universe Tickers</label>
+            <div class="flex gap-1.5 text-[11px]">
+              <button onclick="presetUniverse('core')" class="text-blue-400 hover:underline">Core</button> ·
+              <button onclick="presetUniverse('all')" class="text-slate-400 hover:underline">All</button> ·
+              <button onclick="presetUniverse('clear')" class="text-slate-400 hover:underline">Clear</button>
+            </div>
+          </div>
+          <div id="chips" class="flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- 2. Custom Asset Allocation Weights -->
+        <div class="mb-5 p-3.5 rounded-2xl bg-[#090d18] border border-white/[0.06]">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-bold text-white flex items-center gap-1.5">
+              <span>Asset Allocation Weights</span>
+              <span id="weightsTotalBadge" class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold">100.0% Total</span>
+            </label>
+            <button onclick="resetEqualWeights()" class="text-[11px] text-blue-400 hover:text-blue-300 font-semibold">Equalize</button>
+          </div>
+          <!-- Live multi-segment visual progress bar -->
+          <div id="allocBarDrawer" class="w-full h-2 rounded-full bg-slate-900 flex overflow-hidden border border-white/5 mb-3"></div>
+          <p class="text-[11px] text-slate-400 mb-2">Adjust any slider — other assets auto-balance to always sum to 100%:</p>
+          <div id="weightsContainer" class="space-y-2">
+            <!-- Dynamically populated per selected ticker -->
+          </div>
+        </div>
+
+        <!-- 3. Model Parameters -->
+        <div class="mb-5">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">Strategy Parameters</label>
+          <div id="params" class="space-y-2"></div>
+        </div>
+
+        <!-- 4. Capital & Friction -->
+        <div class="space-y-3 mb-5">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Start Date</label>
+              <input type="date" id="start" value="2024-01-01" class="w-full input-dark p-2 text-xs num"/>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">End Date</label>
+              <input type="date" id="end" class="w-full input-dark p-2 text-xs num"/>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs text-slate-400 block mb-1">Initial Capital ($)</label>
+            <input type="number" id="capital" value="1000000" class="w-full input-dark p-2 text-xs num font-semibold"/>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Fee (bps)</label>
+              <input type="number" id="fee" value="5" class="w-full input-dark p-2 text-xs num"/>
+            </div>
+            <div>
+              <label class="text-xs text-slate-400 block mb-1">Slippage (bps)</label>
+              <input type="number" id="slip" value="5" class="w-full input-dark p-2 text-xs num"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button onclick="run(); toggleConfigDrawer();" class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-600/30 transition">
+          Apply &amp; Re-run Backtest
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= UPLOAD CSV MODAL ================= -->
+  <div id="uploadModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bento-card w-full max-w-md p-6 bg-[#111625] border border-white/10 shadow-2xl relative">
+      <button onclick="closeUploadModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <h3 class="text-base font-bold text-white mb-1">Upload Custom Market Data</h3>
+      <p class="text-xs text-slate-400 mb-4">Ingest proprietary OTC contracts or alternative benchmarks</p>
+
+      <form id="uploadForm" onsubmit="handleUpload(event)" class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">Ticker Identifier</label>
+          <input type="text" id="uploadTicker" placeholder="e.g. JKM_CUSTOM or SPOT_LNG" required class="w-full input-dark p-2.5 text-xs font-mono uppercase"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">CSV File</label>
+          <input type="file" id="uploadFile" accept=".csv" required class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600/20 file:text-blue-400 hover:file:bg-blue-600/30 cursor-pointer"/>
+          <p class="text-[10px] text-slate-500 mt-1">Requires <code>Date</code> and <code>Close</code> columns</p>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeUploadModal()" class="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white">Cancel</button>
+          <button type="submit" id="uploadBtn" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white">Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Help & Intervals Modal -->
+  <div id="helpModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bento-card w-full max-w-lg p-6 bg-[#111625] border border-white/10 shadow-2xl relative">
+      <button onclick="toggleHelpModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <h3 class="text-base font-bold text-white mb-2">Energy Strategy Lab Documentation</h3>
+      <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+        Quant backtester and forward paper simulation engine for global energy benchmarks (TTF, Henry Hub, JKM LNG, NBP, and Brent Crude).
+      </p>
+
+      <div class="space-y-3 text-xs text-slate-300">
+        <div class="p-3 rounded-xl bg-[#090d18] border border-white/[0.06]">
+          <span class="font-bold text-blue-400 block mb-1">Asset Allocation</span>
+          <p class="text-slate-400 leading-relaxed">
+            Target weights can be customized in the <b class="text-white">Controls</b> drawer. Adjust the percentage slider for each contract (e.g. 50% TTF, 30% NG, 20% JKM).
+          </p>
+        </div>
+        <div class="p-3 rounded-xl bg-[#090d18] border border-white/[0.06]">
+          <span class="font-bold text-emerald-400 block mb-1">Paper Trading &amp; Time Intervals</span>
+          <p class="text-slate-400 leading-relaxed">
+            • Daily settlement bars (<code class="text-slate-200">1d</code>) are used for multi-year futures trend models.<br/>
+            • You can advance forward on-demand with <b class="text-white">Step Forward</b> or schedule steps via API webhook: <code class="text-slate-200">POST /api/paper/{id}/step</code>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer"></div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    let UNI = [], STRATS = [], charts = {}, selRun = null, lastBacktestResult = null;
+    let customWeights = {}; // Ticker -> percentage (e.g. { "TTF=F": 50, "NG=F": 50 })
+    let paperModalWeights = {};
+
+    const $ = id => document.getElementById(id);
+    const F2 = v => Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const F0 = v => Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+    function showToast(text, type = 'info') {
+      const container = $('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast-msg flex items-center gap-2 px-4 py-3 rounded-2xl border text-xs shadow-2xl backdrop-blur-md ' +
+        (type === 'success' ? 'bg-[#0f241a] border-emerald-500/40 text-emerald-200' :
+         type === 'error' ? 'bg-[#290d14] border-rose-500/40 text-rose-200' :
+         'bg-[#111625] border-blue-500/40 text-blue-200');
+      toast.innerHTML = `<span class="w-2 h-2 rounded-full ${type === 'success' ? 'bg-emerald-400' : type === 'error' ? 'bg-rose-400' : 'bg-blue-400'}"></span><span>${text}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.add('show'));
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    if (window.Chart) {
+      Chart.defaults.color = '#64748b';
+      Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+      Chart.defaults.font.family = "'JetBrains Mono', monospace";
+      Chart.defaults.font.size = 11;
+    }
+
+    function switchNav(tab) {
+      const isDash = tab === 'dash';
+      $('bentoDashboard').classList.toggle('hidden', !isDash);
+      $('bentoPaper').classList.toggle('hidden', isDash);
+      
+      $('navDash').className = isDash 
+        ? 'px-5 py-2 rounded-full text-xs font-bold transition-all bg-white text-slate-900 shadow-sm'
+        : 'px-5 py-2 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all';
+      
+      $('navPaper').className = !isDash
+        ? 'px-5 py-2 rounded-full text-xs font-bold transition-all bg-white text-slate-900 shadow-sm flex items-center gap-1.5'
+        : 'px-5 py-2 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5';
+      
+      if (!isDash) loadPaperRuns();
+    }
+
+    function toggleConfigDrawer() { $('configDrawer').classList.toggle('hidden'); }
+    function openUploadModal() { $('uploadModal').classList.remove('hidden'); }
+    function closeUploadModal() { $('uploadModal').classList.add('hidden'); }
+    function toggleHelpModal() { $('helpModal').classList.toggle('hidden'); }
+
+    function openPaperModal() {
+      $('paperModal').classList.remove('hidden');
+      $('pmodalStrategy').innerHTML = STRATS.map(x => `<option value="${x.name}">${formatTitle(x.name)}</option>`).join('');
+      renderPaperModalChips();
+    }
+    function closePaperModal() { $('paperModal').classList.add('hidden'); }
+
+    window.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        run();
+      }
+      if (e.key === 'Escape') {
+        closeUploadModal();
+        closePaperModal();
+        $('helpModal').classList.add('hidden');
+        $('configDrawer').classList.add('hidden');
+      }
+    });
+
+    async function init() {
+      try {
+        const [u, s] = await Promise.all([
+          (await fetch('/api/universe')).json(),
+          (await fetch('/api/strategies')).json()
+        ]);
+        UNI = u.tickers;
+        STRATS = s.strategies;
+        
+        $('feedText').textContent = `${UNI.length} Instruments · Live Feed`;
+        renderChips('chips', ['TTF=F', 'NG=F', 'JKM=F']);
+        renderStrategies();
+        syncWeightsUI();
+        
+        // Initial backtest run
+        run();
+        loadPaperRuns();
+      } catch (e) {
+        $('feedText').textContent = 'API Offline';
+        showToast('Engine connection failed: ' + e.message, 'error');
+      }
+    }
+
+    function renderChips(el, defaults) {
+      $(el).innerHTML = UNI.map(t => {
+        const liq = t.liquid !== false;
+        const on = liq && defaults.includes(t.symbol);
+        return `
+          <button type="button" data-s="${t.symbol}" ${liq ? '' : 'disabled'}
+            class="chip px-3 py-1.5 rounded-xl text-xs font-medium border transition-all
+            ${on ? 'bg-blue-600 border-blue-500 text-white' : 'bg-[#090d18] border-white/10 text-slate-400 hover:text-white'}
+            ${liq ? '' : 'opacity-30 border-dashed cursor-not-allowed'}">
+            <span class="font-mono font-bold">${t.symbol}</span>
+          </button>
+        `;
+      }).join('');
+
+      $(el).querySelectorAll('button:not([disabled])').forEach(b => {
+        b.onclick = () => {
+          const isSelected = b.classList.contains('bg-blue-600');
+          if (isSelected) {
+            b.className = 'chip px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-[#090d18] border-white/10 text-slate-400 hover:text-white';
+          } else {
+            b.className = 'chip px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-blue-600 border-blue-500 text-white';
+          }
+          syncWeightsUI();
+        };
+      });
+    }
+
+    function presetUniverse(mode) {
+      const buttons = $('chips').querySelectorAll('button:not([disabled])');
+      buttons.forEach(b => {
+        const sym = b.dataset.s;
+        let select = false;
+        if (mode === 'core') select = ['TTF=F', 'NG=F', 'JKM=F'].includes(sym);
+        else if (mode === 'all') select = true;
+        else if (mode === 'clear') select = false;
+
+        b.className = select
+          ? 'chip px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-blue-600 border-blue-500 text-white'
+          : 'chip px-3 py-1.5 rounded-xl text-xs font-medium border transition-all bg-[#090d18] border-white/10 text-slate-400 hover:text-white';
+      });
+      syncWeightsUI();
+    }
+
+    function toggleTicker(sym) {
+      const btn = $('chips').querySelector(`[data-s="${sym}"]`);
+      if (btn && !btn.disabled) {
+        btn.click();
+        run();
+      }
+    }
+
+    function selTickers() {
+      return [...$('chips').querySelectorAll('button')].filter(b => b.className.includes('bg-blue-600')).map(b => b.dataset.s);
+    }
+
+    // ==========================================
+    // ASSET ALLOCATION WEIGHTS MANAGEMENT
+    // ==========================================
+    const ALLOC_COLORS = ['#0052fe','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+
+    function syncWeightsUI() {
+      const selected = selTickers();
+      const container = $('weightsContainer');
+      if (!selected.length) {
+        container.innerHTML = '<p class="text-xs text-slate-500 py-1 font-mono">No tickers selected.</p>';
+        customWeights = {};
+        updateAllocBar();
+        return;
+      }
+
+      // If any new tickers were added or removed, redistribute equally across ALL
+      let needsReset = false;
+      selected.forEach(t => { if (!(t in customWeights)) needsReset = true; });
+      Object.keys(customWeights).forEach(t => {
+        if (!selected.includes(t)) { delete customWeights[t]; needsReset = true; }
+      });
+      if (needsReset) {
+        const equalShare = +(100 / selected.length).toFixed(1);
+        selected.forEach(t => { customWeights[t] = equalShare; });
+      }
+
+      container.innerHTML = selected.map(t => `
+        <div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#111625] border border-white/[0.04]">
+          <span class="font-mono text-xs font-bold text-white w-16">${t}</span>
+          <input type="range" min="0" max="100" step="0.1" value="${customWeights[t]}" oninput="updateWeight('${t}', this.value)" class="flex-1 accent-blue-600 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          <div class="flex items-center gap-1 w-14 justify-end">
+            <span id="wtVal_${t.replace('=', '_')}" class="num text-xs font-bold text-blue-400">${customWeights[t]}</span>
+            <span class="text-[10px] text-slate-500">%</span>
+          </div>
+        </div>
+      `).join('');
+      updateAllocBar();
+    }
+
+    function updateWeight(t, val) {
+      const newVal = parseFloat(val);
+      const selected = selTickers();
+      const others = selected.filter(x => x !== t);
+
+      if (!others.length) {
+        customWeights[t] = 100;
+      } else {
+        const remaining = Math.max(0, 100 - newVal);
+        const othersSum = others.reduce((s, x) => s + (customWeights[x] || 0), 0);
+        if (othersSum > 0) {
+          others.forEach(x => {
+            customWeights[x] = +((customWeights[x] / othersSum) * remaining).toFixed(1);
+          });
+        } else {
+          const share = +(remaining / others.length).toFixed(1);
+          others.forEach(x => { customWeights[x] = share; });
+        }
+        customWeights[t] = +newVal.toFixed(1);
+      }
+
+      // Update ALL slider labels and positions
+      selected.forEach(x => {
+        const valEl = $(`wtVal_${x.replace('=', '_')}`);
+        if (valEl) valEl.textContent = customWeights[x];
+        const slider = $('weightsContainer').querySelector(`input[oninput*="'${x}'"]`);
+        if (slider && x !== t) slider.value = customWeights[x];
+      });
+      updateAllocBar();
+    }
+
+    function updateAllocBar() {
+      const selected = selTickers();
+      const bar = $('allocBarDrawer');
+      const badge = $('weightsTotalBadge');
+      if (!selected.length) {
+        if (bar) bar.innerHTML = '';
+        if (badge) { badge.textContent = '0% Total'; badge.className = 'text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-mono font-bold'; }
+        return;
+      }
+      const total = selected.reduce((s, t) => s + (customWeights[t] || 0), 0);
+      if (badge) {
+        badge.textContent = `${total.toFixed(1)}% Total`;
+        const ok = Math.abs(total - 100) < 1;
+        badge.className = `text-[9px] px-1.5 py-0.5 rounded font-mono font-bold ${ok ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`;
+      }
+      if (bar) {
+        bar.innerHTML = selected.map((t, i) => {
+          const pct = total > 0 ? ((customWeights[t] || 0) / total * 100) : 0;
+          return `<div style="width:${pct}%;background:${ALLOC_COLORS[i % ALLOC_COLORS.length]}" title="${t}: ${customWeights[t]}%"></div>`;
+        }).join('');
+      }
+    }
+
+    function resetEqualWeights() {
+      const selected = selTickers();
+      if (!selected.length) return;
+      const share = +(100 / selected.length).toFixed(1);
+      selected.forEach(t => {
+        customWeights[t] = share;
+        const valEl = $(`wtVal_${t.replace('=', '_')}`);
+        if (valEl) valEl.textContent = share;
+        const slider = $(`weightsContainer`).querySelector(`[oninput*="'${t}'"]`);
+        if (slider) slider.value = share;
+      });
+      updateAllocBar();
+      showToast('Weights equalized across universe', 'info');
+    }
+
+    function getNormalizedWeights(weightsMap, selectedList) {
+      if (!selectedList.length) return null;
+      let total = 0;
+      selectedList.forEach(t => total += (weightsMap[t] || 0));
+      if (total <= 0) return null;
+      const out = {};
+      selectedList.forEach(t => {
+        out[t] = (weightsMap[t] || 0) / total;
+      });
+      return out;
+    }
+
+    function renderStrategies() {
+      const sel = $('quickStrategy');
+      sel.innerHTML = STRATS.map(x => `<option value="${x.name}">${formatTitle(x.name)}</option>`).join('');
+      sel.value = 'atr_trailing_trend';
+      updateParamsView();
+    }
+
+    function formatTitle(name) {
+      return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        .replace('Ttf', 'TTF').replace('Ng', 'NG').replace('Jkm', 'JKM').replace('Atr', 'ATR');
+    }
+
+    function syncStrategyFromQuick() {
+      updateParamsView();
+      run();
+    }
+
+    function updateParamsView() {
+      const strat = $('quickStrategy').value;
+      const f = STRATS.find(x => x.name === strat);
+      const d = (f && f.defaults) || {};
+      
+      $('quickParamsPreview').textContent = Object.entries(d).map(([k, v]) => `${k}=${v}`).join(' · ') || 'No parameters (benchmark)';
+      $('chartStrategyTitle').innerHTML = `${formatTitle(strat)} <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30">ALPHA</span>`;
+
+      $('params').innerHTML = Object.entries(d).map(([k, v]) => `
+        <div class="p-2.5 rounded-xl bg-[#090d18] border border-white/[0.06]">
+          <div class="flex justify-between text-xs text-slate-400 mb-1">
+            <span class="font-mono">${k}</span>
+            <span class="font-mono text-slate-500">default: ${v}</span>
+          </div>
+          <input type="${typeof v === 'number' ? 'number' : 'text'}" data-k="${k}" value="${v}" step="any" class="w-full input-dark p-2 text-xs font-mono"/>
+        </div>
+      `).join('');
+    }
+
+    function readParams() {
+      const strat = $('quickStrategy').value;
+      const f = STRATS.find(x => x.name === strat);
+      const d = (f && f.defaults) || {};
+      const out = {};
+      document.querySelectorAll('#params [data-k]').forEach(el => {
+        const k = el.dataset.k;
+        out[k] = typeof d[k] === 'number' ? parseFloat(el.value) : el.value;
+      });
+      return out;
+    }
+
+    function setPeriod(y, btn) {
+      document.querySelectorAll('.tf-btn').forEach(b => {
+        b.className = 'tf-btn px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition';
+      });
+      btn.className = 'tf-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 text-white shadow-sm transition';
+      
+      if (y === 0) {
+        $('start').value = '';
+        $('end').value = '';
+      } else {
+        const s = new Date();
+        s.setFullYear(s.getFullYear() - y);
+        $('start').value = s.toISOString().slice(0, 10);
+        $('end').value = '';
+      }
+      run();
+    }
+
+    async function run() {
+      const tickers = selTickers();
+      if (!tickers.length) {
+        showToast('Please select at least 1 ticker', 'error');
+        return;
+      }
+
+      const btn = $('runBtn');
+      const text = $('runText');
+      btn.disabled = true;
+      text.textContent = 'Simulating…';
+
+      const normWeights = getNormalizedWeights(customWeights, tickers);
+
+      const body = {
+        tickers,
+        strategy: $('quickStrategy').value,
+        params: readParams(),
+        start: $('start').value || null,
+        end: $('end').value || null,
+        initial_capital: parseFloat($('capital').value) || 1000000,
+        weights: normWeights,
+        fee_bps: parseFloat($('fee').value) || 5,
+        slippage_bps: parseFloat($('slip').value) || 5
+      };
+
+      try {
+        const r = await fetch('/api/backtest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || 'Backtest error');
+        lastBacktestResult = j;
+        renderDashboard(j);
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        text.textContent = 'Run Simulation';
+      }
+    }
+
+    function renderDashboard(j) {
+      const m = j.metrics;
+      const pnl = m.final_value - m.initial_capital;
+      const isProf = m.total_return_pct >= 0;
+
+      // 1. Hero Blue Card Update
+      $('heroFinalValue').textContent = '$' + F0(m.final_value);
+      $('heroPnl').textContent = (pnl >= 0 ? '+$' : '-$') + F0(Math.abs(pnl));
+      $('heroReturnPct').textContent = `${isProf ? '+' : ''}${m.total_return_pct}% Total`;
+      $('heroReturnPct').className = `text-[10px] font-bold num ${isProf ? 'text-emerald-200' : 'text-rose-200'} mt-1 inline-block`;
+      $('heroCapital').textContent = '$' + (m.initial_capital / 1e6).toFixed(2) + 'M';
+      $('heroDays').textContent = `${m.n_days} Bars`;
+      $('heroPeriod').textContent = `${m.start} → ${m.end}`;
+
+      // 2. Executive 6-KPI Scorecards Update
+      $('kpiValue').textContent = '$' + F0(m.final_value);
+      $('kpiPnl').textContent = (pnl >= 0 ? '+$' : '-$') + F0(Math.abs(pnl));
+      $('kpiPnlPct').textContent = `${isProf ? '+' : ''}${m.total_return_pct}%`;
+      $('kpiPnlPct').className = `px-1.5 py-0.2 rounded text-[10px] font-bold font-mono ${isProf ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-300'}`;
+
+      $('kpiReturn').textContent = `${m.total_return_pct}%`;
+      $('kpiReturn').className = `text-xl xl:text-2xl font-extrabold num ${isProf ? 'text-emerald-400' : 'text-rose-400'}`;
+      $('kpiCagr').textContent = `${m.cagr_pct}%`;
+
+      $('kpiSharpe').textContent = `${m.sharpe}`;
+      $('kpiVol').textContent = `Vol ${m.ann_vol_pct}%`;
+      const sRating = m.sharpe >= 1.0 ? 'High' : (m.sharpe >= 0.5 ? 'Moderate' : 'Low');
+      $('kpiSharpeRating').textContent = sRating;
+      $('kpiSharpeRating').className = `px-1.5 py-0.2 rounded text-[10px] font-bold font-mono ${m.sharpe >= 1.0 ? 'bg-emerald-950 text-emerald-300' : 'bg-slate-800 text-slate-300'}`;
+
+      $('kpiDrawdown').textContent = `${m.max_drawdown_pct}%`;
+      const dRating = Math.abs(m.max_drawdown_pct) < 20 ? 'Controlled' : 'High Risk';
+      $('kpiDdRating').textContent = dRating;
+      $('kpiDdRating').className = `px-1.5 py-0.2 rounded text-[10px] font-bold font-mono ${Math.abs(m.max_drawdown_pct) < 20 ? 'bg-emerald-950 text-emerald-300' : 'bg-rose-950 text-rose-300'}`;
+
+      $('kpiWinRate').textContent = `${m.win_rate_pct}%`;
+      $('kpiDays').textContent = `${m.n_days} trading days`;
+
+      $('kpiTrades').textContent = `${m.num_trades}`;
+      const tPerYear = (m.num_trades / (m.n_days / 252 || 1)).toFixed(1);
+      $('kpiTradesPerYear').textContent = `${tPerYear} / year`;
+
+      // 3. Chart Micro-stats
+      $('statCagr').textContent = `${m.cagr_pct}%`;
+      $('statSharpe').textContent = `${m.sharpe}`;
+      $('statDd').textContent = `${m.max_drawdown_pct}%`;
+      $('statWin').textContent = `${m.win_rate_pct}%`;
+
+      // 4. Drawdown Card stats
+      $('drawdownBigVal').textContent = `${m.max_drawdown_pct}%`;
+      $('statTrades').textContent = `${m.num_trades}`;
+      $('statVol').textContent = `${m.ann_vol_pct}%`;
+
+      // 4. Render Main Equity Chart
+      const labels = j.equity_curve.map(p => p.date);
+      const vals = j.equity_curve.map(p => p.value);
+      
+      let peak = vals[0];
+      const dd = vals.map(v => {
+        peak = Math.max(peak, v);
+        return +((v / peak - 1) * 100).toFixed(2);
+      });
+
+      if (charts.eq) charts.eq.destroy();
+      if (charts.dd) charts.dd.destroy();
+      if (charts.donut) charts.donut.destroy();
+
+      const eqCtx = $('eq').getContext('2d');
+      const eqGrad = eqCtx.createLinearGradient(0, 0, 0, 240);
+      eqGrad.addColorStop(0, 'rgba(0, 82, 254, 0.35)');
+      eqGrad.addColorStop(1, 'rgba(0, 82, 254, 0.00)');
+
+      charts.eq = new Chart(eqCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: vals,
+            borderColor: '#266eff',
+            borderWidth: 2.5,
+            fill: true,
+            backgroundColor: eqGrad,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#266eff',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 2,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#080b13',
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: ctx => `Equity: $${F0(ctx.parsed.y)}`
+              }
+            }
+          },
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.03)' }, ticks: { maxTicksLimit: 7 } },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { callback: v => '$' + (v >= 1e6 ? (v / 1e6).toFixed(1) + 'M' : (v / 1e3).toFixed(0) + 'k') }
+            }
+          },
+          interaction: { mode: 'index', intersect: false }
+        }
+      });
+
+      // 5. Render Underwater Drawdown Chart
+      const ddCtx = $('dd').getContext('2d');
+      const ddGrad = ddCtx.createLinearGradient(0, 0, 0, 160);
+      ddGrad.addColorStop(0, 'rgba(244, 63, 94, 0.02)');
+      ddGrad.addColorStop(1, 'rgba(244, 63, 94, 0.30)');
+
+      charts.dd = new Chart(ddCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: dd,
+            borderColor: '#f43f5e',
+            borderWidth: 2,
+            fill: true,
+            backgroundColor: ddGrad,
+            pointRadius: 0,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: { ticks: { callback: v => v + '%' }, grid: { color: 'rgba(255, 255, 255, 0.04)' } }
+          }
+        }
+      });
+
+      // 6. Render Donut Allocation Chart
+      const weights = j.weights || {};
+      const donutLabels = Object.keys(weights);
+      const donutValues = Object.values(weights).map(w => +(w * 100).toFixed(1));
+      const donutColors = ['#0052fe', '#00d2ff', '#10b981', '#f59e0b', '#a855f7', '#f43f5e'];
+
+      charts.donut = new Chart($('donutChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: donutLabels,
+          datasets: [{
+            data: donutValues,
+            backgroundColor: donutColors.slice(0, donutLabels.length),
+            borderColor: '#111625',
+            borderWidth: 4,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '76%',
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+
+      $('donutLegend').innerHTML = donutLabels.map((lbl, i) => `
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#090d18] border border-white/[0.06] text-xs font-mono">
+          <span class="w-2 h-2 rounded-full" style="background:${donutColors[i % donutColors.length]}"></span>
+          <span class="text-white font-bold">${lbl}</span>
+          <span class="text-slate-400">${donutValues[i]}%</span>
+        </div>
+      `).join('');
+    }
+
+    function downloadCSV() {
+      if (!lastBacktestResult || !lastBacktestResult.equity_curve) return;
+      let csv = 'Date,Equity\n';
+      lastBacktestResult.equity_curve.forEach(r => csv += `${r.date},${r.value}\n`);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `energy_equity_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      showToast('Exported Equity Curve CSV', 'success');
+    }
+
+    function copySummaryText() {
+      if (!lastBacktestResult) return;
+      const m = lastBacktestResult.metrics;
+      const text = `Energy Strategy Lab
+Strategy: ${lastBacktestResult.strategy}
+Final Equity: $${F0(m.final_value)} (+${m.total_return_pct}%)
+CAGR: ${m.cagr_pct}% | Sharpe: ${m.sharpe} | Max DD: ${m.max_drawdown_pct}%`;
+      navigator.clipboard.writeText(text);
+      showToast('Copied summary to clipboard!', 'success');
+    }
+
+    // ==========================================
+    // PAPER TRADING COCKPIT (RICH BENTO VIEW)
+    // ==========================================
+    async function loadPaperRuns() {
+      try {
+        const j = await (await fetch('/api/paper')).json();
+        const runs = j.runs || [];
+        $('paperBadge').textContent = runs.length;
+        $('paperBadge').classList.toggle('hidden', runs.length === 0);
+
+        $('paperList').innerHTML = runs.length ? runs.map(r => `
+          <button onclick="showPaper('${r.id}')" class="w-full text-left p-4 rounded-2xl border transition ${r.id === selRun ? 'bg-blue-600/15 border-blue-500 shadow-lg shadow-blue-500/10' : 'bg-[#090d18] border-white/[0.06] hover:border-white/20'}">
+            <div class="flex justify-between items-center mb-1">
+              <b class="text-xs text-white font-bold">${formatTitle(r.strategy)}</b>
+              <span class="num text-xs font-bold ${r.return_pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${r.return_pct >= 0 ? '+' : ''}${r.return_pct}%</span>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+              <span class="truncate max-w-[170px]">${r.tickers.join(', ')}</span>
+              <span class="text-white font-bold">$${F0(r.equity)}</span>
+            </div>
+            <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-2 pt-1.5 border-t border-white/[0.04]">
+              <span class="px-1.5 py-0.2 rounded ${r.status === 'open' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400'}">${r.status.toUpperCase()}</span>
+              <span>${r.last_date} · ${r.steps} step${r.steps === 1 ? '' : 's'}</span>
+            </div>
+          </button>
+        `).join('') : '<p class="text-xs text-slate-500 py-8 text-center">No active forward portfolios yet.<br/><button onclick="openPaperModal()" class="mt-2 text-blue-400 font-bold hover:underline">Deploy your first run →</button></p>';
+
+        if (runs.length && !selRun) showPaper(runs[0].id);
+      } catch (e) {
+        showToast('Error loading paper runs: ' + e.message, 'error');
+      }
+    }
+
+    async function showPaper(id) {
+      selRun = id;
+      const r = await fetch('/api/paper/' + id);
+      const j = await r.json();
+      if (!r.ok) return;
+
+      const h = j.history || [];
+      const last = h[h.length - 1] || { equity: j.initial_capital };
+      const ret = ((last.equity / j.initial_capital - 1) * 100).toFixed(2);
+      const isProf = ret >= 0;
+
+      $('paperDetail').innerHTML = `
+        <!-- Top Action & Performance Header -->
+        <div class="bento-card p-6 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <h3 class="text-lg font-extrabold text-white">${formatTitle(j.strategy)} Forward Account</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${j.status === 'open' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">${j.status.toUpperCase()}</span>
+            </div>
+            <p class="text-xs text-slate-400 font-mono">ID: <span class="text-white">${j.id}</span> · Created: ${j.created} · Latest Step: ${j.last_date}</p>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex items-center gap-2">
+            <button onclick="stepPaper('${j.id}')" ${j.status !== 'open' ? 'disabled' : ''} class="px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white shadow-lg shadow-blue-600/30 flex items-center gap-2 transition disabled:opacity-40">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Step Forward (Daily Close)
+            </button>
+            <button onclick="closePaper('${j.id}')" ${j.status !== 'open' ? 'disabled' : ''} class="px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-white/10 hover:border-white/20 text-slate-300 transition disabled:opacity-40">
+              Liquidate
+            </button>
+            <button onclick="delPaper('${j.id}')" class="px-3 py-2.5 rounded-xl text-xs font-semibold border border-rose-900/50 text-rose-300 hover:bg-rose-950/40 transition">
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bento-card p-4">
+            <span class="text-[11px] text-slate-400 font-bold uppercase block mb-1">Current Equity</span>
+            <b class="text-xl font-extrabold num text-white">$${F2(last.equity)}</b>
+            <span class="text-[10px] font-bold num ${isProf ? 'text-emerald-400' : 'text-rose-400'} block mt-1">${isProf ? '+' : ''}${ret}% Net</span>
+          </div>
+          <div class="bento-card p-4">
+            <span class="text-[11px] text-slate-400 font-bold uppercase block mb-1">Starting Capital</span>
+            <b class="text-xl font-extrabold num text-slate-200">$${F0(j.initial_capital)}</b>
+            <span class="text-[10px] text-slate-500 font-mono block mt-1">Cash Buffer</span>
+          </div>
+          <div class="bento-card p-4">
+            <span class="text-[11px] text-slate-400 font-bold uppercase block mb-1">Cash Reserves</span>
+            <b class="text-xl font-extrabold num text-blue-400">$${F2(j.cash)}</b>
+            <span class="text-[10px] text-slate-500 font-mono block mt-1">${((j.cash / last.equity) * 100).toFixed(1)}% Unallocated</span>
+          </div>
+          <div class="bento-card p-4">
+            <span class="text-[11px] text-slate-400 font-bold uppercase block mb-1">Execution Steps</span>
+            <b class="text-xl font-extrabold num text-white">${h.length}</b>
+            <span class="text-[10px] text-slate-500 font-mono block mt-1">${j.trades} Trades Filled</span>
+          </div>
+        </div>
+
+        <!-- Forward Equity Chart -->
+        <div class="bento-card p-6">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300">Simulated Forward Equity Curve</h4>
+            </div>
+            <span class="text-[10px] font-mono text-emerald-400 px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-900/60">Live Forward</span>
+          </div>
+          <div class="w-full h-[220px]">
+            <canvas id="peqChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Holdings Table & Step Log -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          
+          <!-- Open Positions Holdings -->
+          <div class="bento-card p-5">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 18h12l3-18H3z"/></svg>
+              Current Open Positions
+            </h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left num">
+                <thead>
+                  <tr class="text-slate-500 border-b border-white/[0.06] text-[10px] uppercase font-mono">
+                    <th class="py-2">Symbol</th>
+                    <th class="py-2">Units</th>
+                    <th class="py-2">Price</th>
+                    <th class="py-2 text-right">Market Value</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.04]">
+                  ${j.tickers.map(t => {
+                    const u = j.units[t] || 0;
+                    const px = j.last_prices[t] || 0;
+                    const val = u * px;
+                    return `
+                      <tr class="hover:bg-white/[0.02]">
+                        <td class="py-2.5 font-bold text-white font-mono">${t}</td>
+                        <td class="py-2.5 font-mono text-slate-300">${u.toFixed(2)}</td>
+                        <td class="py-2.5 font-mono text-slate-400">$${F2(px)}</td>
+                        <td class="py-2.5 font-mono text-right font-bold text-emerald-400">$${F2(val)}</td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Step History Log -->
+          <div class="bento-card p-5">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Execution &amp; Step Audit Trail
+            </h4>
+            <div class="space-y-2 max-h-[220px] overflow-y-auto pr-1 text-xs font-mono">
+              ${h.slice().reverse().map(step => `
+                <div class="flex justify-between items-center p-2 rounded-xl bg-[#090d18] border border-white/[0.04]">
+                  <div>
+                    <span class="text-white font-bold block">${step.date}</span>
+                    <span class="text-[10px] text-slate-500">${step.note || 'Forward Daily Step'}</span>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-white font-bold block">$${F2(step.equity)}</span>
+                    <span class="text-[10px] text-slate-500">cost: $${step.cost ? F2(step.cost) : '0.00'}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      // Render Forward Equity Chart
+      if (charts.peq) charts.peq.destroy();
+      const peqCanvas = $('peqChart');
+      if (peqCanvas) {
+        const peqCtx = peqCanvas.getContext('2d');
+        const peqGrad = peqCtx.createLinearGradient(0, 0, 0, 200);
+        peqGrad.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
+        peqGrad.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+
+        charts.peq = new Chart(peqCtx, {
+          type: 'line',
+          data: {
+            labels: h.map(p => p.date),
+            datasets: [{
+              label: 'Paper Equity',
+              data: h.map(p => p.equity),
+              borderColor: '#10b981',
+              borderWidth: 2.5,
+              fill: true,
+              backgroundColor: peqGrad,
+              pointRadius: h.length > 25 ? 0 : 4,
+              pointHoverRadius: 6,
+              pointHoverBackgroundColor: '#10b981',
+              pointHoverBorderColor: '#ffffff',
+              tension: 0.15
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#080b13',
+                borderColor: 'rgba(16, 185, 129, 0.3)',
+                borderWidth: 1,
+                padding: 10,
+                callbacks: { label: ctx => `Equity: $${F2(ctx.parsed.y)}` }
+              }
+            },
+            scales: {
+              x: { grid: { color: 'rgba(255, 255, 255, 0.03)' }, ticks: { maxTicksLimit: 8 } },
+              y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { callback: v => '$' + F0(v) } }
+            }
+          }
+        });
+      }
+    }
+
+    async function stepPaper(id) {
+      try {
+        const r = await fetch('/api/paper/' + id + '/step', { method: 'POST' });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || 'Step execution failed');
+        showToast(`Forward step simulated to ${j.last_date}`, 'success');
+        await loadPaperRuns();
+        await showPaper(id);
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function closePaper(id) {
+      if (!confirm('Liquidate open positions and close this account?')) return;
+      await fetch('/api/paper/' + id + '/close', { method: 'POST' });
+      showToast('Paper portfolio liquidated to cash', 'info');
+      await loadPaperRuns();
+      await showPaper(id);
+    }
+
+    async function delPaper(id) {
+      if (!confirm('Permanently delete this paper trading run?')) return;
+      await fetch('/api/paper/' + id, { method: 'DELETE' });
+      selRun = null;
+      showToast('Paper portfolio deleted', 'info');
+      await loadPaperRuns();
+      $('paperDetail').innerHTML = '<div class="bento-card p-12 text-center text-slate-400">Select or deploy a paper trading run.</div>';
+    }
+
+    // Modal New Paper Run Logic
+    function renderPaperModalChips() {
+      const container = $('pmodalChips');
+      const defaults = ['TTF=F', 'NG=F'];
+      container.innerHTML = UNI.map(t => {
+        const liq = t.liquid !== false;
+        const on = liq && defaults.includes(t.symbol);
+        return `
+          <button type="button" data-s="${t.symbol}" ${liq ? '' : 'disabled'}
+            class="pmodal-chip px-3 py-1.5 rounded-xl text-xs font-medium border transition
+            ${on ? 'bg-emerald-600 border-emerald-500 text-white' : 'bg-[#090d18] border-white/10 text-slate-400 hover:text-white'}
+            ${liq ? '' : 'opacity-30 border-dashed cursor-not-allowed'}">
+            <span class="font-mono font-bold">${t.symbol}</span>
+          </button>
+        `;
+      }).join('');
+
+      container.querySelectorAll('button:not([disabled])').forEach(b => {
+        b.onclick = () => {
+          const isSelected = b.classList.contains('bg-emerald-600');
+          b.className = isSelected
+            ? 'pmodal-chip px-3 py-1.5 rounded-xl text-xs font-medium border transition bg-[#090d18] border-white/10 text-slate-400 hover:text-white'
+            : 'pmodal-chip px-3 py-1.5 rounded-xl text-xs font-medium border transition bg-emerald-600 border-emerald-500 text-white';
+          syncPaperModalWeights();
+        };
+      });
+      syncPaperModalWeights();
+    }
+
+    function syncPaperModalWeights() {
+      const selected = [...$('pmodalChips').querySelectorAll('.bg-emerald-600')].map(b => b.dataset.s);
+      const container = $('pmodalWeightsList');
+      if (!selected.length) {
+        container.innerHTML = '<p class="text-xs text-slate-500 font-mono py-1">Select at least 1 instrument.</p>';
+        paperModalWeights = {};
+        return;
+      }
+      // Reset equally when selection changes
+      let needsReset = false;
+      selected.forEach(t => { if (!(t in paperModalWeights)) needsReset = true; });
+      Object.keys(paperModalWeights).forEach(t => {
+        if (!selected.includes(t)) { delete paperModalWeights[t]; needsReset = true; }
+      });
+      if (needsReset) {
+        const share = +(100 / selected.length).toFixed(1);
+        selected.forEach(t => { paperModalWeights[t] = share; });
+      }
+
+      container.innerHTML = selected.map(t => `
+        <div class="flex items-center justify-between gap-3 p-2 rounded-xl bg-[#090d18] border border-white/[0.04]">
+          <span class="font-mono text-xs font-bold text-white w-16">${t}</span>
+          <input type="range" min="0" max="100" step="0.1" value="${paperModalWeights[t]}" oninput="updatePaperModalWeight('${t}', this.value)" class="flex-1 accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+          <div class="flex items-center gap-1 w-14 justify-end">
+            <span id="pmWt_${t.replace('=', '_')}" class="num text-xs font-bold text-emerald-400">${paperModalWeights[t]}</span>
+            <span class="text-[10px] text-slate-500">%</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updatePaperModalWeight(t, val) {
+      const newVal = parseFloat(val);
+      const selected = [...$('pmodalChips').querySelectorAll('.bg-emerald-600')].map(b => b.dataset.s);
+      const others = selected.filter(x => x !== t);
+      if (!others.length) {
+        paperModalWeights[t] = 100;
+      } else {
+        const remaining = Math.max(0, 100 - newVal);
+        const othersSum = others.reduce((s, x) => s + (paperModalWeights[x] || 0), 0);
+        if (othersSum > 0) {
+          others.forEach(x => {
+            paperModalWeights[x] = +((paperModalWeights[x] / othersSum) * remaining).toFixed(1);
+          });
+        } else {
+          const share = +(remaining / others.length).toFixed(1);
+          others.forEach(x => { paperModalWeights[x] = share; });
+        }
+        paperModalWeights[t] = +newVal.toFixed(1);
+      }
+      selected.forEach(x => {
+        const el = $(`pmWt_${x.replace('=', '_')}`);
+        if (el) el.textContent = paperModalWeights[x];
+        const slider = $('pmodalWeightsList').querySelector(`input[oninput*="'${x}'"]`);
+        if (slider && x !== t) slider.value = paperModalWeights[x];
+      });
+    }
+
+    function equalizePaperModalWeights() {
+      const selected = [...$('pmodalChips').querySelectorAll('.bg-emerald-600')].map(b => b.dataset.s);
+      if (!selected.length) return;
+      const share = +(100 / selected.length).toFixed(1);
+      selected.forEach(t => {
+        paperModalWeights[t] = share;
+        const el = $(`pmWt_${t.replace('=', '_')}`);
+        if (el) el.textContent = share;
+      });
+      syncPaperModalWeights();
+    }
+
+    async function submitCreatePaper() {
+      const tickers = [...$('pmodalChips').querySelectorAll('.bg-emerald-600')].map(b => b.dataset.s);
+      if (!tickers.length) {
+        showToast('Select at least one instrument', 'error');
+        return;
+      }
+      const normWeights = getNormalizedWeights(paperModalWeights, tickers);
+      const body = {
+        tickers,
+        strategy: $('pmodalStrategy').value,
+        params: {},
+        initial_capital: parseFloat($('pmodalCapital').value) || 1000000,
+        weights: normWeights,
+        fee_bps: 5,
+        slippage_bps: 5
+      };
+
+      try {
+        const r = await fetch('/api/paper', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || 'Failed to create paper run');
+        showToast('Forward account deployed!', 'success');
+        closePaperModal();
+        selRun = j.id;
+        await loadPaperRuns();
+        await showPaper(j.id);
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    // Custom CSV upload
+    async function handleUpload(e) {
+      e.preventDefault();
+      const ticker = $('uploadTicker').value.trim();
+      const file = $('uploadFile').files[0];
+      if (!ticker || !file) return;
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        await fetch(`/api/data/upload?ticker=${encodeURIComponent(ticker)}`, { method: 'POST', body: fd });
+        showToast(`Uploaded dataset ${ticker}`, 'success');
+        closeUploadModal();
+        init();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
