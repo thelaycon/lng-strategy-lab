@@ -6,3 +6,4 @@ data/paper/
 .venv/
 venv/
 .env
+data/sample/
